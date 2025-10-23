@@ -169,6 +169,9 @@ button.btn-valider:hover {
 .modal.hidden {
   display: none;
 }
+.hidden {
+  display: none;
+}
 
 .form-container {
   background: white;

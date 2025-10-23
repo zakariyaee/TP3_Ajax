@@ -43,7 +43,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Variables d'état
   let latestPetitionId = 0;
-  let newPetitionTitle = "";
+  let newPetitions = []; // Stocker toutes les nouvelles pétitions
+  let isViewingNotification = false; // Pour éviter les race conditions
+  let notificationShown = false; // Pour éviter les notifications répétées
 
   // Initialisation: récupérer l'ID de la pétition la plus récente affichée
   const getLatestIdOnPage = () => {
@@ -85,14 +87,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // --- VÉRIFICATION PÉRIODIQUE (POLLING) ---
   const checkForNewPetitions = () => {
+    // Ne pas vérifier si l'utilisateur regarde déjà une notification
+    if (isViewingNotification) return;
+
     fetch(`CheckNewPetition.php?last_id=${latestPetitionId}`)
       .then(response => response.json())
       .then(data => {
-        if (data.nouvellePetition) {
-          // Si une nouvelle pétition est trouvée
-          newPetitionTitle = data.titre; // On stocke le titre
-          latestPetitionId = data.id;   // On met à jour l'ID le plus récent
-          notificationCount.classList.remove("hidden"); // On affiche le "+1"
+        if (data.nouvellePetition && !notificationShown) {
+          // Si de nouvelles pétitions sont trouvées et qu'on n'a pas encore montré la notif
+          newPetitions = data.petitions; // On stocke toutes les nouvelles pétitions
+          latestPetitionId = data.petitions[0].IdP; // On met à jour l'ID le plus récent
+          notificationCount.textContent = `+${data.count}`; // Afficher le nombre exact
+          notificationCount.classList.remove("hidden"); // On affiche le badge
+          notificationShown = true; // Marquer comme affiché
         }
       })
       .catch(error => console.error("Erreur de polling:", error));
@@ -104,12 +111,19 @@ document.addEventListener("DOMContentLoaded", function () {
   // --- GESTION DU CLIC SUR LA CLOCHE DE NOTIFICATION ---
   if (notificationBtn) {
     notificationBtn.addEventListener("click", () => {
+      isViewingNotification = true; // L'utilisateur ouvre la notif
+
       if (!notificationCount.classList.contains("hidden")) {
-        // S'il y a une notification, on l'affiche
-        notificationMessage.textContent = `"${newPetitionTitle}"`;
+        // S'il y a une notification, on affiche toutes les nouvelles pétitions
+        let message = "Nouvelles pétitions ajoutées :\n\n";
+        newPetitions.forEach((petition, index) => {
+          message += `${index + 1}. "${petition.TitreP}"\n`;
+        });
+        notificationMessage.textContent = message;
         notificationModal.classList.remove("hidden");
-        notificationCount.classList.add("hidden"); // Cacher le "+1"
+        notificationCount.classList.add("hidden"); // Cacher le badge
         actualiserListe(); // Mettre à jour la liste en arrière-plan
+        // NE PAS réinitialiser notificationShown ici pour éviter la réapparition
       } else {
         // S'il n'y a pas de nouvelle notif, on peut ouvrir avec un message par défaut
         notificationMessage.textContent = "Aucune nouvelle pétition pour le moment.";
@@ -118,12 +132,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   
-    // Fermer la modale de notification
-    notificationModal.addEventListener("click", (e) => {
-        if (e.target === notificationModal) {
-            notificationModal.classList.add("hidden");
-        }
-    });
+  // Fermer la modale de notification
+  notificationModal.addEventListener("click", (e) => {
+      if (e.target === notificationModal) {
+          notificationModal.classList.add("hidden");
+          isViewingNotification = false; // L'utilisateur ferme la notif
+      }
+  });
 
 
   // --- FONCTION POUR ACTUALISER LA LISTE DES PÉTITIONS ---
@@ -135,8 +150,12 @@ document.addEventListener("DOMContentLoaded", function () {
         tableContainer.innerHTML = xhr.responseText;
         // On met à jour l'ID après l'actualisation
         latestPetitionId = getLatestIdOnPage();
+        // Réinitialiser les notifications après actualisation
+        notificationShown = false;
+        newPetitions = [];
       }
     };
     xhr.send();
   }
 });
+setInterval(actualiserListe, 3000); // Actualiser toute la liste toutes les 60 secondes

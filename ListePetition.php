@@ -65,7 +65,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
 <body class="body">
   <header>
     <h1>📜 Liste des Pétitions</h1>
-    <button id="notification">🔔 <span id="notification-count" class="hidden">+1</span></button>
+    <button id="notification">🔔 <span id="notification-count" class="hidden"><?= $_SESSION['new_petitions_count'] ? $_SESSION['new_petitions_count'] : ''?></span></button>
   </header>
 
   <div id="Petitionn" class="container">

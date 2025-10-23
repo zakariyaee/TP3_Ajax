@@ -2,26 +2,29 @@
 session_start();
 include("db.php");
 
-// On récupère l'ID de la dernière pétition que le client connaît
-$lastSeenId = isset($_GET['last_id']) ? (int)$_GET['last_id'] : 0;
-
-// On cherche une pétition plus récente
-$requete = $conne->prepare("SELECT IDP, TitreP FROM petition WHERE IDP > ? ORDER BY IDP DESC LIMIT 1");
-$requete->execute([$lastSeenId]);
-
-$nouvellePetition = $requete->fetch(PDO::FETCH_ASSOC);
-
 header('Content-Type: application/json');
 
-if ($nouvellePetition) {
-    // Si on trouve une nouvelle pétition, on renvoie ses détails
+$lastSeenId = isset($_GET['last_id']) ? (int)$_GET['last_id'] : 0;
+
+// 1. Compter le nombre de nouvelles pétitions
+$requeteCount = $conne->prepare("SELECT COUNT(*) as count FROM petition WHERE IdP > ?");
+$requeteCount->execute([$lastSeenId]);
+$resultCount = $requeteCount->fetch(PDO::FETCH_ASSOC);
+$newPetitionsCount = (int)$resultCount['count'];
+
+if ($newPetitionsCount > 0) {
+    // 2. Si de nouvelles pétitions existent, récupérer toutes les nouvelles
+    $requeteLatest = $conne->prepare("SELECT IdP, TitreP FROM petition WHERE IdP > ? ORDER BY IdP DESC");
+    $requeteLatest->execute([$lastSeenId]);
+    $newPetitions = $requeteLatest->fetchAll(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'nouvellePetition' => true,
-        'id' => $nouvellePetition['IDP'],
-        'titre' => $nouvellePetition['TitreP']
+        'count' => $newPetitionsCount,
+        'petitions' => $newPetitions
     ]);
 } else {
-    // Sinon, on renvoie une réponse vide
+    // Aucune nouvelle pétition
     echo json_encode(['nouvellePetition' => false]);
 }
 ?>
