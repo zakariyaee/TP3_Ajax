@@ -1,0 +1,239 @@
+/* Style pour le badge "Nouveau" */
+.badge-nouveau {
+    background-color: #28a745; /* Vert */
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* -------------------- RESET DE BASE -------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+body.body {
+  background: #f8fafc;
+  color: #1e293b;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* -------------------- HEADER -------------------- */
+header {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 1.6rem;
+}
+
+header button#notification {
+  background: #1e40af;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+header button#notification:hover {
+  background: #3b82f6;
+}
+
+/* -------------------- CONTAINER PRINCIPAL -------------------- */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 40px auto;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* -------------------- TABLEAU DES PÉTITIONS -------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+thead {
+  background-color: #2563eb;
+  color: white;
+}
+
+thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+}
+
+tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.3s ease;
+}
+
+tbody tr:hover {
+  background: #f1f5f9;
+}
+
+tbody td {
+  padding: 10px;
+  vertical-align: top;
+}
+
+/* -------------------- BADGE "Nouveau" -------------------- */
+.badge-nouveau {
+  background-color: #16a34a;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* -------------------- BOUTONS -------------------- */
+button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.05);
+}
+
+button.btn-fermer {
+  background-color: #dc2626;
+}
+
+button.btn-fermer:hover {
+  background-color: #b91c1c;
+}
+
+button.btn-valider {
+  background-color: #22c55e;
+}
+
+button.btn-valider:hover {
+  background-color: #16a34a;
+}
+
+/* -------------------- MESSAGE AUCUNE DONNÉE -------------------- */
+.no-data {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* -------------------- MODALES (POP-UP) -------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+  animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------- FORMULAIRES -------------------- */
+form label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #334155;
+}
+
+form input,
+form textarea {
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input:focus,
+form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  outline: none;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* -------------------- NOTIFICATION MODAL -------------------- */
+#Notification .form-container {
+  text-align: center;
+}
+
+#Notification h2 {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+/* -------------------- ANIMATION DE NOTIFICATION -------------------- */
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
