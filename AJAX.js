@@ -1,83 +1,64 @@
-// --- FORMULAIRE SIGNATURE ---
-const modalSignature = document.getElementById("modalSignature");
-const openSignature = document.getElementById("ouvrireFormSignature");
-const closeSignature = document.getElementById("fermerSignature");
+// --- GESTION DES MODALES (SIGNATURE & PÉTITION) ---
 
-if (openSignature && closeSignature) {
-  openSignature.addEventListener("click", (e) => {
-    e.preventDefault();
-    modalSignature.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-  });
+// Fonction pour initialiser une modale
+function initialiserModale(idModale, idOuvrir, idFermer) {
+  const modale = document.getElementById(idModale);
+  const ouvrir = document.getElementById(idOuvrir);
+  const fermer = document.getElementById(idFermer);
 
-  closeSignature.addEventListener("click", () => {
-    modalSignature.classList.add("hidden");
-    document.body.style.overflow = "auto";
-  });
-
-  modalSignature.addEventListener("click", (e) => {
-    if (e.target === modalSignature) modalSignature.classList.add("hidden");
-  });
-}
-
-// --- FORMULAIRE PÉTITION ---
-const modalPetition = document.getElementById("modalPetition");
-const openPetition = document.getElementById("ouvrireFormPetition");
-const closePetition = document.getElementById("fermerPetition");
-
-if (openPetition && closePetition) {
-  openPetition.addEventListener("click", (e) => {
-    e.preventDefault();
-    modalPetition.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-  });
-
-  closePetition.addEventListener("click", () => {
-    modalPetition.classList.add("hidden");
-    document.body.style.overflow = "auto";
-  });
-
-  modalPetition.addEventListener("click", (e) => {
-    if (e.target === modalPetition) modalPetition.classList.add("hidden");
-  });
-}
-
-// --- NOTIFICATION ---
-const notificationBtn = document.getElementById("notification");
-const notificationModal = document.getElementById("Notification");
-
-if (notificationBtn && notificationModal) {
-  notificationBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    notificationModal.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-
-    notificationModal.addEventListener("click", (e) => {
-      if (e.target === notificationModal) {
-        notificationModal.classList.add("hidden");
-        document.body.style.overflow = "auto";
-      }
+  if (modale && ouvrir && fermer) {
+    ouvrir.addEventListener("click", (e) => {
+      e.preventDefault();
+      modale.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
     });
-  });
+
+    const fermerModale = () => {
+      modale.classList.add("hidden");
+      document.body.style.overflow = "auto";
+    };
+
+    fermer.addEventListener("click", fermerModale);
+    modale.addEventListener("click", (e) => {
+      if (e.target === modale) fermerModale();
+    });
+  }
 }
 
-// --- TRAITEMENT AJAX ET NOTIFICATIONS ---
+initialiserModale("modalSignature", "ouvrireFormSignature", "fermerSignature");
+initialiserModale("modalPetition", "ouvrireFormPetition", "fermerPetition");
+
+// --- SYSTÈME DE NOTIFICATION ---
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("formPetition");
-  const modal = document.getElementById("modalPetition");
+  // Éléments du DOM
+  const formPetition = document.getElementById("formPetition");
+  const modalPetition = document.getElementById("modalPetition");
   const tableContainer = document.getElementById("Petitionn");
+  const notificationBtn = document.getElementById("notification");
+  const notificationModal = document.getElementById("Notification");
+  const notificationCount = document.getElementById("notification-count");
+  const notificationMessage = document.getElementById("notification-message");
 
-  if (!tableContainer) return; // Sécurité
+  if (!tableContainer) return; // Quitter si le conteneur n'existe pas
 
-  // On compte le nombre initial de pétitions
-  let petitionCount = tableContainer.querySelectorAll("tbody tr").length;
+  // Variables d'état
+  let latestPetitionId = 0;
+  let newPetitionTitle = "";
+
+  // Initialisation: récupérer l'ID de la pétition la plus récente affichée
+  const getLatestIdOnPage = () => {
+    const firstRow = tableContainer.querySelector("tbody tr[data-id]");
+    return firstRow ? parseInt(firstRow.dataset.id, 10) : 0;
+  };
+
+  latestPetitionId = getLatestIdOnPage();
 
   // --- GESTION DE L'AJOUT D'UNE PÉTITION ---
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault(); // empêche le rechargement
+  if (formPetition) {
+    formPetition.addEventListener("submit", function (e) {
+      e.preventDefault();
 
-      const formData = new FormData(form);
+      const formData = new FormData(formPetition);
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "AjouterPetition.php", true);
 
@@ -86,20 +67,15 @@ document.addEventListener("DOMContentLoaded", function () {
           try {
             const response = JSON.parse(xhr.responseText);
             if (response.success) {
-              // Fermer la modale d'ajout
-              modal.classList.add("hidden");
+              // Fermer la modale et actualiser la liste
+              modalPetition.classList.add("hidden");
               document.body.style.overflow = "auto";
-
-              // Afficher une notification de succès pour l'utilisateur qui a ajouté
-              afficherNotification("✅ Nouvelle pétition ajoutée !");
-
-              // Actualiser la liste immédiatement
-              actualiserListeEtNotifier(true);
+              actualiserListe(); // On actualise pour voir notre ajout
             } else {
-              alert("Erreur lors de l’ajout : " + response.message);
+              alert("Erreur lors de l’ajout : " + (response.message || "Erreur inconnue."));
             }
           } catch (error) {
-            console.error("Erreur JSON :", error, xhr.responseText);
+            console.error("Erreur JSON lors de l'ajout:", error, xhr.responseText);
           }
         }
       };
@@ -107,45 +83,60 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --- FONCTION DE NOTIFICATION GÉNÉRIQUE ---
-  function afficherNotification(message) {
-    if (notificationModal) {
-      const title = notificationModal.querySelector("h2");
-      if (title) title.innerText = message;
-      
-      notificationModal.classList.remove("hidden");
-      
-      // Cacher la notification après 3 secondes
-      setTimeout(() => {
-        notificationModal.classList.add("hidden");
-        if (title) title.innerText = "Notification"; // Reset
-      }, 3000);
-    }
-  }
-
-  // --- FONCTION POUR RECHARGER LA LISTE ET VÉRIFIER LES NOUVEAUTÉS ---
-  function actualiserListeEtNotifier(forceUpdate = false) {
-    const xhrListe = new XMLHttpRequest();
-    xhrListe.open("GET", "ListePetition.php?ajax=1", true);
-    xhrListe.onreadystatechange = function () {
-      if (xhrListe.readyState === 4 && xhrListe.status === 200) {
-        if (tableContainer) {
-          tableContainer.innerHTML = xhrListe.responseText;
-          const newPetitionCount = tableContainer.querySelectorAll("tbody tr").length;
-
-          // Si le nbr de pétitions a augmenté et que ce n'est pas le 1er chargement
-          if (newPetitionCount > petitionCount && !forceUpdate) {
-            afficherNotification("🔔 Une nouvelle pétition est disponible !");
-          }
-
-          // Mettre à jour le compteur
-          petitionCount = newPetitionCount;
+  // --- VÉRIFICATION PÉRIODIQUE (POLLING) ---
+  const checkForNewPetitions = () => {
+    fetch(`CheckNewPetition.php?last_id=${latestPetitionId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.nouvellePetition) {
+          // Si une nouvelle pétition est trouvée
+          newPetitionTitle = data.titre; // On stocke le titre
+          latestPetitionId = data.id;   // On met à jour l'ID le plus récent
+          notificationCount.classList.remove("hidden"); // On affiche le "+1"
         }
+      })
+      .catch(error => console.error("Erreur de polling:", error));
+  };
+
+  // Lancer la vérification toutes les 5 secondes
+  setInterval(checkForNewPetitions, 5000);
+
+  // --- GESTION DU CLIC SUR LA CLOCHE DE NOTIFICATION ---
+  if (notificationBtn) {
+    notificationBtn.addEventListener("click", () => {
+      if (!notificationCount.classList.contains("hidden")) {
+        // S'il y a une notification, on l'affiche
+        notificationMessage.textContent = `"${newPetitionTitle}"`;
+        notificationModal.classList.remove("hidden");
+        notificationCount.classList.add("hidden"); // Cacher le "+1"
+        actualiserListe(); // Mettre à jour la liste en arrière-plan
+      } else {
+        // S'il n'y a pas de nouvelle notif, on peut ouvrir avec un message par défaut
+        notificationMessage.textContent = "Aucune nouvelle pétition pour le moment.";
+        notificationModal.classList.remove("hidden");
+      }
+    });
+  }
+  
+    // Fermer la modale de notification
+    notificationModal.addEventListener("click", (e) => {
+        if (e.target === notificationModal) {
+            notificationModal.classList.add("hidden");
+        }
+    });
+
+
+  // --- FONCTION POUR ACTUALISER LA LISTE DES PÉTITIONS ---
+  function actualiserListe() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "ListePetition.php?ajax=1", true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        tableContainer.innerHTML = xhr.responseText;
+        // On met à jour l'ID après l'actualisation
+        latestPetitionId = getLatestIdOnPage();
       }
     };
-    xhrListe.send();
+    xhr.send();
   }
-
-  // Polling: Actualiser la liste toutes les 3 secondes
-  setInterval(actualiserListeEtNotifier, 3000);
 });

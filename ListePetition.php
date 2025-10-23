@@ -16,7 +16,8 @@ function afficherPetitionsEtBoutons($conne) {
         
         $compteur = 1; // Initialiser le compteur
         foreach ($requ as $row) {
-            echo '<tr>';
+            // On ajoute un attribut data-id pour identifier la ligne
+            echo '<tr data-id="' . htmlspecialchars($row['IDP']) . '">';
             
             // Colonne pour le statut "Nouveau"
             echo '<td>';
@@ -64,7 +65,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
 <body class="body">
   <header>
     <h1>📜 Liste des Pétitions</h1>
-    <button id="notification">🔔</button>
+    <button id="notification">🔔 <span id="notification-count" class="hidden">+1</span></button>
   </header>
 
   <div id="Petitionn" class="container">
@@ -133,7 +134,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
                 <!-- 🪟 Modale Notification -->
                 <div id="Notification" class="modal hidden">
                   <div class="form-container" style="text-align: center;">
-                    <h2 style="font-size: 1.5em; margin-bottom: 0;">Notification</h2>
+                    <h2 style="font-size: 1.5em; margin-bottom: 0;">🔔 Nouvelle Pétition !</h2>
+                    <p id="notification-message" style="margin-top: 10px;"></p>
                   </div>
                 </div>
 
