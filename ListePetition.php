@@ -130,16 +130,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
             </form>
           </div>
         </div>
-        <div id="Notification" class="modal hidden">
-         <div class="form-container">
-          <h2>Notification</h2>
-          <form action="" method="post"> 
-           <label>Titre Petition </label>
-           <label>nombre De Signature </label>
-          </form>
-          </div>
-          </div>
-
+                <!-- 🪟 Modale Notification -->
+                <div id="Notification" class="modal hidden">
+                  <div class="form-container" style="text-align: center;">
+                    <h2 style="font-size: 1.5em; margin-bottom: 0;">Notification</h2>
+                  </div>
+                </div>
 
 
 
